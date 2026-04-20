@@ -27,11 +27,13 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
-      # Must be explicit: some runners don’t pass default env into `npm run` / Vite reliably.
+      # Force BASE_PATH in the same shell as Vite (fixes 404 on /assets/ without /repo/).
       - name: Build
-        run: npm run build
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          REPO=$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')
+          export BASE_PATH="/${REPO}/"
+          echo "BASE_PATH=$BASE_PATH"
+          npm run build
       - name: Verify GitHub Pages base path in index.html
         run: |
           NAME=$(echo '${{ github.repository }}' | cut -d/ -f2 | tr '[:upper:]' '[:lower:]')
